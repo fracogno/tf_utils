@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from residual_dense_block import ResDense
+from tf_utils import residual_dense_block
 
 
 def add_layer(model, layer):
@@ -23,7 +23,7 @@ def full_summary(model, input_shape):
 
 
 if __name__ == '__main__':
-    block = ResDense(2, 32, 3, "he_uniform", batch_norm=True)
+    block = residual_dense_block.ResDense(2, 32, 3, "he_uniform", batch_norm=True)
     full_summary(block, (8, 8, 8, 2))
 
 
