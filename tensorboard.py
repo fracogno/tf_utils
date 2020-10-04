@@ -46,9 +46,9 @@ class Tensorboard:
             if isinstance(self.scalars[key], list):
                 metrics[key] = []
                 for index in range(len(self.scalars[key])):
-                    metrics[key].append(self.scalars[key][index].result())
+                    metrics[key].append(self.scalars[key][index].result().numpy())
             else:
-                metrics[key] = self.scalars[key].result()
+                metrics[key] = self.scalars[key].result().numpy()
 
         return metrics
 
