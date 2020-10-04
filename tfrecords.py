@@ -51,7 +51,7 @@ class TFRecordsManager:
         filenames.sort()
         return filenames
 
-    def parser_TFRecord(self, record, params):
+    def parser_TFRecord(self, record, data_purpose, params):
         features = {}
         for key in params["data_keys"]:
             features[key] = tf.io.FixedLenFeature([], tf.string, default_value="")
@@ -59,7 +59,7 @@ class TFRecordsManager:
         parsed_record = tf.io.parse_single_example(record, features)
         data = {}
         for key in params["data_keys"]:
-            data[key] = tf.reshape(tf.io.decode_raw(parsed_record[key], tf.float32), params["shapes"][key])
+            data[key] = tf.reshape(tf.io.decode_raw(parsed_record[key], tf.float32), params["shapes"][data_purpose][key])
 
         return data
 
@@ -69,10 +69,10 @@ class TFRecordsManager:
         datasets = {}
         for data_purpose in params["data_purposes"]:
             dataset = tf.data.TFRecordDataset(self.get_records_filenames(path + data_purpose + "/"),
-                                              compression_type='GZIP').map(lambda record: self.parser_TFRecord(record, params))
+                                              compression_type='GZIP').map(lambda record: self.parser_TFRecord(record, data_purpose, params))
 
             if "train" in data_purpose:
-                dataset = dataset.shuffle(50000)
+                dataset = dataset.shuffle(100000)
 
             dataset = dataset.batch(batch_size)
             datasets[data_purpose] = dataset
