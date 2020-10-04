@@ -33,6 +33,7 @@ class DilatedConv(tf.keras.Model):
     def summary(self, input_shape):
         x = tf.keras.Input(shape=input_shape)
         model = tf.keras.Model(inputs=[x], outputs=self.call(x, training=False))
+        tf.keras.utils.plot_model(model, to_file='DilatedConv.png', show_shapes=True, expand_nested=True)
         model.summary(line_length=200)
 
 
