@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from tf_utils import cnn_block
+from . import cnn_block
 
 
 class ResDense(tf.keras.Model):
