@@ -1,8 +1,8 @@
 import tensorflow as tf
 from tensorflow.keras.layers import MaxPool2D, Conv2DTranspose, Conv2D, Softmax
 
-from tf_utils import CompUnpoolBlock
-from tf_utils import CompDenseBlock
+from tf_utils.blocks.competitive_unpool_block import CompUnpoolBlock
+from tf_utils.blocks.competitive_dense_block import CompDenseBlock
 
 class CDFNet(tf.keras.layers.Layer):
 

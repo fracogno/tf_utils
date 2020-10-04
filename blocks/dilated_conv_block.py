@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from . import cnn_block
+from tf_utils.blocks import cnn_block
 
 
 class DilatedConv(tf.keras.Model):
@@ -11,9 +11,10 @@ class DilatedConv(tf.keras.Model):
         self.n_layers = n_layers
         self.parts = []
         for i in range(n_layers):
-            self.parts.append(cnn_block.CNN(filters, 1, kernel_initializer=kernel_initializer, dilation_rate=dilation_rate, batch_norm=batch_norm, activation=activation))
+            self.parts.append(
+                cnn_block.CNN(filters, 1, kernel_initializer=kernel_initializer, dilation_rate=dilation_rate, batch_norm=batch_norm, activation=activation))
             self.parts.append(cnn_block.CNN(filters // 4, k_size, kernel_initializer=kernel_initializer,
-                                                 dilation_rate=dilation_rate, batch_norm=batch_norm, activation=activation))
+                                            dilation_rate=dilation_rate, batch_norm=batch_norm, activation=activation))
             self.parts.append(tf.keras.layers.Dropout(dropout))
             self.parts.append(tf.keras.layers.Concatenate())
 
