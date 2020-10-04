@@ -2,7 +2,7 @@ import tensorflow as tf
 import os
 import numpy as np
 
-from tf_utils import misc
+from . import misc
 
 
 class TFRecordsManager:
