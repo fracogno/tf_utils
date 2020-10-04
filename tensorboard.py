@@ -5,31 +5,73 @@ class Tensorboard:
 
     def __init__(self, ckp_path, scalars, modes):
         self.ckp_path = ckp_path
-        self.scalars = scalars
+        self.scalars = self.init_metrics(scalars)
 
-        if ckp_path is not None:
+        if ckp_path is not None and modes is not None:
             self.summary_writers = {mode: tf.summary.create_file_writer(self.ckp_path + 'logs/' + mode) for mode in modes}
 
-    def write_tensorboard(self, mode, images, shape, epoch):
-        """ Write stats in tensorboard file. """
+    def init_metrics(self, metrics):
+        """
+        :param metrics: Dict(stat type => dict(value : 0., type : "Mean"))
+        :return:
+        """
+        scalars = {}
+        for key in metrics:
+            if isinstance(metrics[key], list):
+                scalars[key] = []
+                for index in range(len(metrics[key])):
+                    if metrics[key][index]["type"] == "Mean":
+                        scalars[key].append(tf.keras.metrics.Mean(name=key + '-' + str(index)))
+                    else:
+                        raise NotImplementedError(metrics[key][index]["type"])
+            else:
+                if metrics[key]["type"] == "Mean":
+                    scalars[key] = tf.keras.metrics.Mean(name=key)
+                else:
+                    raise NotImplementedError(metrics[key][index]["type"])
+
+        return scalars
+
+    def update_metrics(self, metrics):
+        for key in self.scalars:
+            if isinstance(self.scalars[key], list):
+                for index in range(len(self.scalars[key])):
+                    self.scalars[key][index](metrics[key][index])
+            else:
+                self.scalars[key](metrics[key])
+
+    def get_current_metrics(self):
+        metrics = {}
+        for key in self.scalars:
+            if isinstance(self.scalars[key], list):
+                metrics[key] = []
+                for index in range(len(self.scalars[key])):
+                    metrics[key].append(self.scalars[key][index].result())
+            else:
+                metrics[key] = self.scalars[key].result()
+
+        return metrics
+
+    def write_summary(self, mode, epoch, images=None, shape=None):
+        """ Write statistics. """
         with self.summary_writers[mode].as_default():
             for key in self.scalars:
                 # Check if list or not
                 if isinstance(self.scalars[key], list):
-                    for step in range(len(self.scalars[key])):
-                        tf.summary.scalar(key + '-' + str(step), self.scalars[key][step].result(), step=epoch)
+                    for index in range(len(self.scalars[key])):
+                        tf.summary.scalar(key + '-' + str(index), self.scalars[key][index].result(), step=epoch)
                 else:
                     tf.summary.scalar(key, self.scalars[key].result(), step=epoch)
 
             # Tensorboard images
-            if images is not None:
+            if images is not None and shape is not None:
                 for key in list(images.keys()):
                     tf.summary.image(key, images[key][:, :, :, int(shape // 2)], max_outputs=1, step=epoch)
 
-        self.reset_states_tensorboard()
+        self.reset_states()
 
-    def reset_states_tensorboard(self):
-        """ After each epoch reset accumulating tensorboard metrics. """
+    def reset_states(self):
+        """ After each epoch reset accumulating metrics. """
         for key in self.scalars:
             if isinstance(self.scalars[key], list):
                 for step in range(len(self.scalars[key])):
