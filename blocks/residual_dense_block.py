@@ -3,6 +3,7 @@ import tensorflow as tf
 from tf_utils.blocks import cnn_block
 
 
+
 class ResDense(tf.keras.Model):
 
     def __init__(self, n_layers, filters, k_size, kernel_initializer="glorot_uniform", batch_norm=False, activation=tf.keras.layers.LeakyReLU):
