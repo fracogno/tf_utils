@@ -22,21 +22,23 @@ class MetricsManager:
 
         return dice_score
 
-    def gen_dice(y_true, y_pred, eps=1e-6):
-        """both tensors are [b, h, w, classes] and y_pred is in logit form"""
-
-        # [b, h, w, classes]
-        pred_tensor = tf.nn.softmax(y_pred)
+    def generalized_dice_score(self, y_true, logits, eps=1e-6):
+        """
+        :param y_true: [b, h, w, d, classes]
+        :param logits: [b, h, w, classes]
+        :param eps:
+        :return:
+        """
+        # [b, h, w, d, classes]
+        pred_tensor = tf.nn.softmax(logits)
         y_true_shape = tf.shape(y_true)
 
-        # [b, h*w, classes]
-        y_true = tf.reshape(y_true, [-1, y_true_shape[1] * y_true_shape[2], y_true_shape[3]])
-        y_pred = tf.reshape(pred_tensor, [-1, y_true_shape[1] * y_true_shape[2], y_true_shape[3]])
+        # [b, h*w*d, classes]
+        y_true = tf.reshape(y_true, [-1, y_true_shape[1] * y_true_shape[2] * y_true_shape[3], y_true_shape[4]])
+        y_pred = tf.reshape(pred_tensor, [-1, y_true_shape[1] * y_true_shape[2] * y_true_shape[3], y_true_shape[4]])
 
         # [b, classes]
-        # count how many of each class are present in
-        # each image, if there are zero, then assign
-        # them a fixed weight of eps
+        # count how many of each class are present in each image, if there are zero, then assign them a fixed weight of eps
         counts = tf.reduce_sum(y_true, axis=1)
         weights = 1. / (counts ** 2)
         weights = tf.where(tf.math.is_finite(weights), weights, eps)
@@ -49,4 +51,5 @@ class MetricsManager:
         denom = tf.reduce_sum(weights * summed, axis=-1)
         dices = 1. - 2. * numerators / denom
         dices = tf.where(tf.math.is_finite(dices), dices, tf.zeros_like(dices))
+
         return tf.reduce_mean(dices)
