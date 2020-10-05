@@ -22,7 +22,7 @@ class MetricsManager:
 
         return dice_score
 
-    def generalized_dice_score(self, y_true, logits, eps=1e-6):
+    '''def generalized_dice_score(self, y_true, logits, eps=1e-6):
         """
         :param y_true: [b, h, w, d, classes]
         :param logits: [b, h, w, classes]
@@ -52,12 +52,13 @@ class MetricsManager:
         dices = 1. - 2. * numerators / denom
         dices = tf.where(tf.math.is_finite(dices), dices, tf.zeros_like(dices))
 
-        return tf.reduce_mean(dices)
+        return tf.reduce_mean(dices)'''
 
     def weighted_cross_entropy(self, onehot_labels, logits):
         ce = tf.nn.softmax_cross_entropy_with_logits(onehot_labels, logits, axis=-1)
 
-        class_weights = tf.constant([0.01, 3., 2., 2., 20., 3., 12., 4., 5.])
-        weights = tf.reduce_sum(class_weights * onehot_labels, axis=-1)
+        #class_weights = tf.constant([0.01, 3., 2., 2., 20., 3., 12., 4., 5.])
+        #weights = tf.reduce_sum(class_weights * onehot_labels, axis=-1)
 
-        return tf.reduce_mean(weights * ce)
+        #return tf.reduce_mean(weights * ce)
+        return tf.reduce_mean(ce)
