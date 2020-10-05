@@ -72,7 +72,7 @@ class TFRecordsManager:
                                               compression_type='GZIP').map(lambda record: self.parser_TFRecord(record, data_purpose, params))
 
             dataset = dataset.shuffle(100000)
-            dataset = dataset.batch(batch_size) if "train" in data_purpose else dataset.batch(2)
+            dataset = dataset.batch(batch_size) if "train" in data_purpose else dataset.batch(1)
             datasets[data_purpose] = dataset
             del dataset
 
