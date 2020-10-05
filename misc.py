@@ -5,6 +5,7 @@ from pathlib import Path
 import datetime
 import os
 import numpy as np
+import tensorflow as tf
 
 
 def get_base_path(training):
@@ -66,3 +67,10 @@ def make_patches(volume, padding, patch_size):
                 patches.append(blocks[i, j, k, :, :, :])
 
     return np.array(patches)
+
+
+def get_argmax_prediction(logits):
+    probs = tf.nn.softmax(logits)
+    predictions = tf.math.argmax(probs, axis=-1)
+
+    return predictions[..., tf.newaxis]

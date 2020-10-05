@@ -70,10 +70,8 @@ class TFRecordsManager:
         for data_purpose in params["data_purposes"]:
             dataset = tf.data.TFRecordDataset(self.get_records_filenames(path + data_purpose + "/"),
                                               compression_type='GZIP').map(lambda record: self.parser_TFRecord(record, data_purpose, params))
-
-            if "train" in data_purpose:
-                dataset = dataset.shuffle(100000)
-
+            
+            dataset = dataset.shuffle(100000)
             dataset = dataset.batch(batch_size)
             datasets[data_purpose] = dataset
             del dataset

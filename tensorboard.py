@@ -52,7 +52,7 @@ class Tensorboard:
 
         return metrics
 
-    def write_summary(self, mode, epoch, images=None, shape=None):
+    def write_summary(self, mode, epoch, images=None):
         """ Write statistics. """
         with self.summary_writers[mode].as_default():
             for key in self.scalars:
@@ -63,10 +63,9 @@ class Tensorboard:
                 else:
                     tf.summary.scalar(key, self.scalars[key].result(), step=epoch)
 
-            # Tensorboard images
-            if images is not None and shape is not None:
+            if images is not None:
                 for key in list(images.keys()):
-                    tf.summary.image(key, images[key][:, :, :, int(shape // 2)], max_outputs=1, step=epoch)
+                    tf.summary.image(key, images[key][:, :, :, int(images[key].shape[-2] // 2)], max_outputs=2, step=epoch)
 
         self.reset_states()
 
