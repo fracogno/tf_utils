@@ -1,8 +1,11 @@
 import pickle
 import json
+import skimage
 from pathlib import Path
 import datetime
 import os
+import numpy as np
+import tensorflow as tf
 
 
 def get_base_path(training):
@@ -14,6 +17,7 @@ def get_base_path(training):
         return base_path, checkpoint_path
     else:
         return base_path
+
 
 def create_TF_records_folder(data_path, data_purposes):
     TF_records_path = data_path + "TF_records_" + datetime.datetime.now().strftime("%Y%m%d_%H%M%S") + "/"
@@ -50,3 +54,23 @@ def split_into_chunks(array, size):
     """
     for i in range(0, len(array), size):
         yield array[i:i + size]
+
+
+def make_patches(volume, padding, patch_size):
+    padded = np.pad(volume, padding, 'constant')
+    blocks = skimage.util.shape.view_as_blocks(padded, (patch_size, patch_size, patch_size))
+
+    patches = []
+    for i in range(blocks.shape[0]):
+        for j in range(blocks.shape[1]):
+            for k in range(blocks.shape[2]):
+                patches.append(blocks[i, j, k, :, :, :])
+
+    return np.array(patches)
+
+
+def get_argmax_prediction(logits):
+    probs = tf.nn.softmax(logits)
+    predictions = tf.math.argmax(probs, axis=-1)
+
+    return predictions[..., tf.newaxis]
