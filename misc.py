@@ -73,4 +73,4 @@ def get_argmax_prediction(logits):
     probs = tf.nn.softmax(logits)
     predictions = tf.math.argmax(probs, axis=-1)
 
-    return predictions[..., tf.newaxis]
+    return tf.cast(predictions[..., tf.newaxis], tf.float32)
