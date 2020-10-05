@@ -55,18 +55,9 @@ class MetricsManager:
         return tf.reduce_mean(dices)
 
     def weighted_cross_entropy(self, onehot_labels, logits):
-        """# your class weights
-        class_weights = tf.constant([[1.0, 2.0, 3.0]])
-        # deduce weights for batch samples based on their true label
-        weights = tf.reduce_sum(class_weights * onehot_labels, axis=1)
-        # compute your (unweighted) softmax cross entropy loss
-        unweighted_losses = tf.nn.softmax_cross_entropy_with_logits(onehot_labels, logits)
-        # apply the weights, relying on broadcasting of the multiplication
-        weighted_losses = unweighted_losses * weights
-        # reduce the result to get your final loss
-        loss = tf.reduce_mean(weighted_losses)"""
-
-        weights = [0.01, 3., 2., 2., 20., 3., 12., 4.]
         ce = tf.nn.softmax_cross_entropy_with_logits(onehot_labels, logits, axis=-1)
 
-        return tf.reduce_mean(ce)
+        class_weights = tf.constant([0.01, 3., 2., 2., 20., 3., 12., 4., 5.])
+        weights = tf.reduce_sum(class_weights * onehot_labels, axis=-1)
+
+        return tf.reduce_mean(weights * ce)
