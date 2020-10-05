@@ -1,6 +1,7 @@
 import tensorflow as tf
 
-from . import cnn_block
+from tf_utils.blocks import cnn_block
+
 
 
 class ResDense(tf.keras.Model):
@@ -15,7 +16,8 @@ class ResDense(tf.keras.Model):
         self.n_layers = n_layers
         self.parts = []
         for i in range(n_layers):
-            self.parts.append(cnn_block.CNN(filters, k_size, kernel_initializer=kernel_initializer, batch_norm=batch_norm, activation=activation))
+            self.parts.append(
+                cnn_block.CNN(filters, k_size, kernel_initializer=kernel_initializer, batch_norm=batch_norm, activation=activation))
             self.parts.append(tf.keras.layers.Concatenate())
 
         # Final section
@@ -45,7 +47,7 @@ class ResDense(tf.keras.Model):
     def summary(self, input_shape):
         x = tf.keras.Input(shape=input_shape)
         model = tf.keras.Model(inputs=[x], outputs=self.call(x, training=False))
-        tf.keras.utils.plot_model(model, to_file='ResDense.png', show_shapes=True, expand_nested=True)
+        tf.keras.utils.plot_model(model, to_file='../ResDense.png', show_shapes=True, expand_nested=True)
         model.summary(line_length=200)
 
 

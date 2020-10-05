@@ -2,7 +2,6 @@ import tensorflow as tf
 
 from tf_utils import residual_dense_block
 
-
 def add_layer(model, layer):
     if not layer._layers:
         return model._layers.append(layer)
