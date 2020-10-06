@@ -6,6 +6,25 @@ class MetricsManager:
     def __init__(self):
         pass
 
+    def tversky_loss(self, one_hot, logits):
+        alpha = 0.5
+        beta = 0.5
+
+        probs = tf.nn.softmax(logits)
+
+        ones = tf.ones_like(one_hot)
+        p0 = probs
+        p1 = ones - probs
+        g0 = one_hot
+        g1 = ones - one_hot
+
+        numerator = tf.reduce_sum(p0 * g0, axis=[0, 1, 2, 3])
+        denominator = numerator + alpha * tf.reduce_sum(p0 * g1, axis=[0, 1, 2, 3]) + beta * tf.reduce_sum(p1 * g0, axis=[0, 1, 2, 3])
+
+        T = tf.reduce_sum(numerator / denominator)
+
+        return 1. - T
+
     def generalize_dice_loss(self, one_hot, logits):
         w = tf.reduce_sum(one_hot, axis=[0, 1, 2, 3])
         w = 1 / (w ** 2 + 0.000001)
