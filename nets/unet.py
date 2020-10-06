@@ -49,5 +49,5 @@ class UNet(tf.keras.Model):
 
 
 if __name__ == "__main__":
-    deepseacat = UNet(9, 5, 64, 3, "he_normal", False, 0., tf.keras.layers.LeakyReLU)
-    deepseacat.summary((32, 32, 32, 2))
+    net = UNet(9, 5, 64, 3, "he_normal", False, 0., tf.keras.layers.LeakyReLU)
+    net.summary((176, 144, 128, 2))
