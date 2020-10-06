@@ -6,6 +6,22 @@ class MetricsManager:
     def __init__(self):
         pass
 
+    def generalize_dice_loss(self, one_hot, logits):
+        w = tf.reduce_sum(one_hot, axis=[0, 1, 2, 3])
+        w = 1 / (w ** 2 + 0.000001)
+
+        # Dice coefficient
+        probs = tf.nn.softmax(logits)
+        numerator = w * tf.reduce_sum(probs * one_hot, axis=[0, 1, 2, 3])
+        numerator = tf.reduce_sum(numerator)
+
+        denominator = w * tf.reduce_sum(probs + one_hot, axis=[0, 1, 2, 3])
+        denominator = tf.reduce_sum(denominator)
+
+        loss = 1. - (2. * numerator / denominator)
+
+        return loss
+
     def dice_score_from_logits(self, one_hot, logits):
         """
         Dice coefficient (F1 score) is between 0 and 1.
