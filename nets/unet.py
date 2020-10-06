@@ -4,38 +4,73 @@ from tf_utils.blocks.cnn_block import CNN
 
 
 class UNet(tf.keras.Model):
-    def __init__(self, n_classes, n_layers, starting_filters, k_size, init, batch_norm, dropout, activation):
+    def __init__(self, n_classes, n_layers, starting_filters, k_size, init, batch_norm, dropout, activation, conv_per_layer, max_pool, upsampling, max_n_filters=512):
         super(UNet, self).__init__()
+
+        self.n_layers = n_layers
+        self.conv_per_layer = conv_per_layer
+        self.max_pool = max_pool
+        self.upsampling = upsampling
 
         self.encoder = []
         for i in range(n_layers):
-            n_filters = 512 if starting_filters * (2 ** i) > 512 else starting_filters * (2 ** i)
-            if i == 0:
-                self.encoder.append(CNN(n_filters, k_size, strides=2, kernel_initializer=init, batch_norm=False, dropout=False, activation=activation))
-            else:
-                self.encoder.append(CNN(n_filters, k_size, strides=2, kernel_initializer=init, batch_norm=batch_norm, dropout=False, activation=activation))
+            # Set maximum number of filters
+            n_filters = max_n_filters if starting_filters * (2 ** i) > max_n_filters else starting_filters * (2 ** i)
+
+            # First layer does not have Batch Norm
+            is_batch_norm = i != 0 and batch_norm
+
+            if max_pool and i != 0:
+                self.encoder.append(tf.keras.layers.MaxPool3D())
+
+            # How many CNN layers at each stage
+            for j in range(conv_per_layer):
+                strides = 2 if j == 0 and i != 0 and max_pool is False else 1
+                self.encoder.append(CNN(n_filters, k_size, strides=strides, kernel_initializer=init, batch_norm=is_batch_norm, dropout=False, activation=activation))
 
         self.decoder = []
         for i in range(n_layers - 2, -1, -1):
-            n_filters = 512 if starting_filters * (2 ** i) > 512 else starting_filters * (2 ** i)
-            self.decoder.append(CNN(n_filters, k_size, strides=2, kernel_initializer=init, batch_norm=batch_norm, dropout=dropout, activation=activation, up=True))
+            n_filters = max_n_filters if starting_filters * (2 ** i) > max_n_filters else starting_filters * (2 ** i)
 
-        self.conv = CNN(starting_filters, 3, strides=2, kernel_initializer=init, batch_norm=batch_norm, dropout=0., activation=activation, up=True)
-        self.last_conv = CNN(n_classes, 3, strides=1, kernel_initializer=init, batch_norm=None, dropout=0., activation=None)
+            if upsampling:
+                self.decoder.append(tf.keras.layers.UpSampling3D())
+
+            for j in range(conv_per_layer):
+                strides = 2 if j == 0 and upsampling is False else 1
+                self.decoder.append(CNN(n_filters, k_size, strides=strides, kernel_initializer=init, batch_norm=batch_norm, dropout=dropout, activation=activation, up=True))
+
+        self.last_conv = CNN(n_classes, 3, kernel_initializer=init, batch_norm=None, dropout=0., activation=None)
 
     def call(self, x, training):
-
+        """
+            Encoder
+        """
         skips = []
-        for i in range(len(self.encoder)):
-            x = self.encoder[i](x, training=training)
+        for i in range(self.n_layers):
+
+            if self.max_pool and i != 0:
+                x = self.encoder[i * self.conv_per_layer + (i - 1)](x, training=training)
+
+            for j in range(self.conv_per_layer):
+                x = self.encoder[i * (self.conv_per_layer + int(self.max_pool)) + j](x, training=training)
             skips.append(x)
 
+        """
+            Decoder
+        """
         skips = list(reversed(skips[:-1]))
-        for i in range(len(self.decoder)):
-            x = self.decoder[i](x, training=training)
-            x = tf.keras.layers.Concatenate()([x, skips[i]])
+        for i in range(len(range(self.n_layers - 2, -1, -1))):
 
-        x = self.conv(x)
+            if self.upsampling:
+                x = self.decoder[i * (self.conv_per_layer + int(self.upsampling))](x, training=training)
+                x = tf.keras.layers.Concatenate()([x, skips[i]])
+
+            for j in range(self.conv_per_layer):
+                x = self.decoder[i * (self.conv_per_layer + int(self.upsampling)) + j + int(self.upsampling)](x, training=training)
+
+                if j == 0 and self.upsampling is False:
+                    x = tf.keras.layers.Concatenate()([x, skips[i]])
+
         return self.last_conv(x)
 
     def summary(self, input_shape):
@@ -49,5 +84,5 @@ class UNet(tf.keras.Model):
 
 
 if __name__ == "__main__":
-    net = UNet(9, 5, 64, 3, "he_normal", False, 0., tf.keras.layers.LeakyReLU)
+    net = UNet(9, 5, 64, 3, "he_normal", False, 0., tf.keras.layers.LeakyReLU, 3, True)
     net.summary((176, 144, 128, 2))
