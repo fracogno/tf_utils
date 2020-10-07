@@ -22,9 +22,9 @@ class MetricsManager:
         numerator = w * tf.reduce_sum(probs * one_hot, axis=[1, 2, 3])
         denominator = w * tf.reduce_sum(probs + one_hot, axis=[1, 2, 3])
 
-        dice_score = tf.reduce_sum(2. * numerator / (denominator + 1e-6), axis=0)
+        dice_score = tf.reduce_mean(2. * numerator / (denominator + 1e-6), axis=0)
 
-        loss = 1. - tf.reduce_sum(dice_score)
+        loss = 1. - tf.reduce_mean(dice_score)
 
         return loss
 
@@ -40,7 +40,7 @@ class MetricsManager:
         intersect = tf.reduce_sum(probs * one_hot, axis=[1, 2, 3])
         denominator = tf.reduce_sum(probs + one_hot, axis=[1, 2, 3])
 
-        dice_score = tf.reduce_sum(2. * intersect / (denominator + 1e-6), axis=0)
+        dice_score = tf.reduce_mean(2. * intersect / (denominator + 1e-6), axis=0)
 
         return dice_score
 
