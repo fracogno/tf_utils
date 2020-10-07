@@ -12,21 +12,21 @@ class MetricsManager:
         }
 
     def generalize_dice_loss(self, one_hot, logits):
-        w = tf.reduce_sum(one_hot, axis=[0, 1, 2, 3])
-        w = 1 / (w ** 2 + 0.000001)
+        w = tf.reduce_sum(one_hot, axis=[1, 2, 3])
+        w = 1 / (w + 1e-6)
         w = w / tf.reduce_sum(w)  # Normalize weights
 
-        # Dice coefficient
         probs = tf.nn.softmax(logits)
 
-        numerator = w * tf.reduce_sum(probs * one_hot, axis=[1, 2, 3])
-        denominator = w * tf.reduce_sum(probs + one_hot, axis=[1, 2, 3])
+        multed = tf.reduce_sum(probs * one_hot, axis=[1, 2, 3])
+        summed = tf.reduce_sum(probs + one_hot, axis=[1, 2, 3])
 
-        dice_score = tf.reduce_mean(2. * numerator / (denominator + 1e-6), axis=0)
+        numerator = tf.reduce_sum(w * multed, axis=-1)
+        denominator = tf.reduce_sum(w * summed, axis=-1)
 
-        loss = 1. - tf.reduce_mean(dice_score)
+        dice_score = tf.reduce_mean(2. * numerator / (denominator + 1e-6))
 
-        return loss
+        return 1. - dice_score
 
     def dice_score_from_logits(self, one_hot, logits):
         """
@@ -53,7 +53,7 @@ class MetricsManager:
 
     def weighted_cross_entropy(self, one_hot, logits):
         w = tf.reduce_sum(one_hot, axis=[0, 1, 2, 3])
-        w = 1 / (w ** 2 + 0.000001)
+        w = 1 / (w + 1e-6)
         w = w / tf.reduce_sum(w)  # Normalize weights
         # w = tf.constant([0.01, 3., 2., 2., 20., 3., 20., 20., 4., 5.])
 
