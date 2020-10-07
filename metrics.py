@@ -38,7 +38,7 @@ class MetricsManager:
         probs = tf.nn.softmax(logits)
 
         intersect = tf.reduce_sum(probs * one_hot, axis=[1, 2, 3])
-        denominator = tf.reduce_sum(probs + one_hot, axis=[1, 2, 3])
+        denominator = tf.reduce_sum(probs, axis=[1, 2, 3]) + tf.reduce_sum(one_hot, axis=[1, 2, 3])
 
         dice_score = tf.reduce_mean(2. * intersect / (denominator + 1e-6), axis=0)
 
