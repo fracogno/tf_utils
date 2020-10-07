@@ -4,21 +4,27 @@ import tensorflow as tf
 class MetricsManager:
 
     def __init__(self):
-        pass
+        self.metrics = {
+            "GDICEL": self.generalize_dice_loss,
+            "DICEL": self.dice_loss,
+            "CE": self.cross_entropy,
+            "WCE": self.weighted_cross_entropy
+        }
 
     def generalize_dice_loss(self, one_hot, logits):
         w = tf.reduce_sum(one_hot, axis=[0, 1, 2, 3])
         w = 1 / (w ** 2 + 0.000001)
+        w = w / tf.reduce_sum(w)  # Normalize weights
 
         # Dice coefficient
         probs = tf.nn.softmax(logits)
-        numerator = w * tf.reduce_sum(probs * one_hot, axis=[0, 1, 2, 3])
-        numerator = tf.reduce_sum(numerator)
 
-        denominator = w * tf.reduce_sum(probs + one_hot, axis=[0, 1, 2, 3])
-        denominator = tf.reduce_sum(denominator)
+        numerator = w * tf.reduce_sum(probs * one_hot, axis=[1, 2, 3])
+        denominator = w * tf.reduce_sum(probs + one_hot, axis=[1, 2, 3])
 
-        loss = 1. - (2. * numerator / denominator)
+        dice_score = tf.reduce_sum(2. * numerator / (denominator + 1e-6), axis=0)
+
+        loss = 1. - tf.reduce_sum(dice_score)
 
         return loss
 
@@ -31,18 +37,27 @@ class MetricsManager:
         """
         probs = tf.nn.softmax(logits)
 
-        intersect = tf.reduce_sum(probs * one_hot, axis=[0, 1, 2, 3])
-        denominator = tf.reduce_sum(probs + one_hot, axis=[0, 1, 2, 3])
+        intersect = tf.reduce_sum(probs * one_hot, axis=[1, 2, 3])
+        denominator = tf.reduce_sum(probs + one_hot, axis=[1, 2, 3])
 
-        dice_score = 2. * intersect / (denominator + 1e-6)
+        dice_score = tf.reduce_sum(2. * intersect / (denominator + 1e-6), axis=0)
 
         return dice_score
 
-    def weighted_cross_entropy(self, onehot_labels, logits):
-        ce = tf.nn.softmax_cross_entropy_with_logits(onehot_labels, logits, axis=-1)
+    def dice_loss(self, one_hot, logits):
+        return 1. - tf.reduce_mean(self.dice_score_from_logits(one_hot, logits))
 
-        # class_weights = tf.constant([0.01, 3., 2., 2., 20., 3., 12., 4., 5.])
-        # weights = tf.reduce_sum(class_weights * onehot_labels, axis=-1)
-
-        # return tf.reduce_mean(weights * ce)
+    def cross_entropy(self, onehot, logits):
+        ce = tf.nn.softmax_cross_entropy_with_logits(onehot, logits, axis=-1)
         return tf.reduce_mean(ce)
+
+    def weighted_cross_entropy(self, one_hot, logits):
+        w = tf.reduce_sum(one_hot, axis=[0, 1, 2, 3])
+        w = 1 / (w ** 2 + 0.000001)
+        w = w / tf.reduce_sum(w)  # Normalize weights
+        # w = tf.constant([0.01, 3., 2., 2., 20., 3., 20., 20., 4., 5.])
+
+        ce = tf.nn.softmax_cross_entropy_with_logits(one_hot, logits, axis=-1)
+        weights = tf.reduce_sum(w * one_hot, axis=-1)
+
+        return tf.reduce_mean(weights * ce)
