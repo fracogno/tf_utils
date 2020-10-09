@@ -13,20 +13,20 @@ class MetricsManager:
 
     def generalize_dice_loss(self, one_hot, logits):
         w = tf.reduce_sum(one_hot, axis=[1, 2, 3])
-        w = 1 / (w + 1e-6)
-        w = w / tf.reduce_sum(w)  # Normalize weights
+        w = 1 / (w ** 2 + 1e-6)
+        # w = w / tf.reduce_sum(w)  # Normalize weights
 
         probs = tf.nn.softmax(logits)
 
         multed = tf.reduce_sum(probs * one_hot, axis=[1, 2, 3])
-        summed = tf.reduce_sum(probs + one_hot, axis=[1, 2, 3])
+        summed = tf.reduce_sum(probs, axis=[1, 2, 3]) + tf.reduce_sum(one_hot, axis=[1, 2, 3])
 
-        numerator = tf.reduce_sum(w * multed, axis=-1)
-        denominator = tf.reduce_sum(w * summed, axis=-1)
+        numerator = w * multed
+        denominator = w * summed
 
-        dice_score = tf.reduce_mean(2. * numerator / (denominator + 1e-6))
+        dice_score = tf.reduce_mean(2. * numerator / (denominator + 1e-6), axis=0)
 
-        return 1. - dice_score
+        return 1. - tf.reduce_mean(dice_score)
 
     def dice_score_from_logits(self, one_hot, logits):
         """
