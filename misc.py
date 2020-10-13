@@ -6,6 +6,7 @@ import datetime
 import os
 import numpy as np
 import tensorflow as tf
+import itertools
 
 
 def get_base_path(training):
@@ -19,8 +20,15 @@ def get_base_path(training):
         return base_path
 
 
-def create_TF_records_folder(data_path, data_purposes):
-    TF_records_path = data_path + "TF_records_" + datetime.datetime.now().strftime("%Y%m%d_%H%M%S") + "/"
+def create_TF_records_folder(data_path, data_purposes, params):
+    TF_records_path = data_path + "TF_records_" + datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    if params is not None:
+        true_params = [key for key in params if params[key] is True]
+        if len(true_params) > 0:
+            TF_records_path += "-" + "-".join(true_params)
+    TF_records_path += "/"
+
     os.mkdir(TF_records_path)
     for purpose in data_purposes:
         os.mkdir(TF_records_path + purpose)
@@ -67,6 +75,16 @@ def make_patches(volume, padding, patch_size):
                 patches.append(blocks[i, j, k, :, :, :])
 
     return np.array(patches)
+
+
+def flip_data(data):
+    dims = list(range(len(data.shape)))
+    flips = []
+    for L in range(0, len(dims) + 1):
+        for subset in itertools.combinations(dims, L):
+            flips.append(np.flip(data, axis=subset))
+
+    return np.array(flips)
 
 
 def get_argmax_prediction(logits):
