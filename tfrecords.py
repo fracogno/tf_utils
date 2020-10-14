@@ -38,7 +38,7 @@ class TFRecordsManager:
     @staticmethod
     def _serialize_tensor(x):
         """ Serializes a tensor """
-        return TFRecordsManager._bytes_feature(tf.io.serialize_tensor(x))
+        return TFRecordsManager._bytes_feature(tf.io.serialize_tensor(tf.constant(x)))
 
     def save_record(self, path, data):
         """ Creates a TFRecord from the data """
