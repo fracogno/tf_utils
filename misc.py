@@ -7,6 +7,7 @@ import os
 import numpy as np
 import tensorflow as tf
 import itertools
+import random
 
 
 def get_base_path(training):
@@ -92,3 +93,34 @@ def get_argmax_prediction(logits):
     predictions = tf.math.argmax(probs, axis=-1)
 
     return tf.cast(predictions[..., tf.newaxis], tf.float32)
+
+
+def get_cut_indices(volume, desired_shape):
+    """
+    :param volume: Given a volume, find indices where we could cut removing some useless background
+    :param desired_shape: Chosen indices
+    :return:
+    """
+    assert (len(volume.shape) == 3 and len(desired_shape) == 3)
+    result = (volume.shape[0] - desired_shape[0], volume.shape[1] - desired_shape[1], volume.shape[2] - desired_shape[2])
+
+    volume_non_zeros = np.count_nonzero(volume)
+    range_x, range_y, range_z = list(range(result[0])), list(range(result[1])), list(range(result[2]))
+    random.shuffle(range_x)
+    random.shuffle(range_y)
+    random.shuffle(range_z)
+
+    for i in range_x:
+        for j in range_y:
+            for k in range_z:
+                if np.count_nonzero(volume[i:-(result[0] - i), j:-(result[1] - j), k:-(result[2] - k)]) == volume_non_zeros:
+                    return (i, result[0] - i), (j, result[1] - j), (k, result[2] - k)
+
+    # It has to find a combination of indices
+    assert (False)
+
+
+def get_cut_volume(volume, x_cut, y_cut, z_cut):
+    cut_volume = volume[x_cut[0]:-x_cut[1], y_cut[0]:-y_cut[1], z_cut[0]:-z_cut[1]]
+    assert(np.count_nonzero(volume) == np.count_nonzero(cut_volume))
+    return cut_volume
