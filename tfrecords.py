@@ -3,18 +3,6 @@ import os
 
 from . import misc
 
-'''
-
-params = {
-    'data_keys' : {
-        'X' : tf.float32,
-        'Y' : tf.int32
-        ...
-    }
-}
-
-'''
-
 
 class TFRecordsManager:
 
@@ -42,14 +30,12 @@ class TFRecordsManager:
 
     def save_record(self, path, data):
         """ Creates a TFRecord from the data """
-
         writer = tf.io.TFRecordWriter(path + ".tfrecord", options=tf.io.TFRecordOptions(compression_type="GZIP"))
 
         # Iterate over each sample
         for sample in data:
-
             # Iterate over keys of data (X, Y, etc.) and serialize
-            features = {key : self._serialize_tensor(data[sample][key]) for key in data[sample]}
+            features = {key: self._serialize_tensor(data[sample][key]) for key in data[sample]}
 
             # Write example
             example = tf.train.Example(features=tf.train.Features(feature=features))
@@ -63,19 +49,17 @@ class TFRecordsManager:
 
     def parse_TFRecord(self, record, keys):
         """ Parse a TFRecord """
-        features = {key : tf.io.FixedLenFeature([], tf.string) for key in keys}
+        features = {key: tf.io.FixedLenFeature([], tf.string) for key in keys}
         parsed_record = tf.io.parse_single_example(record, features)
-        return {key : tf.io.parse_tensor(parsed_record[key], keys[key]) for key in keys}
+        return {key: tf.io.parse_tensor(parsed_record[key], keys[key]) for key in keys}
 
     def load_datasets(self, path, batch_size):
         params = misc.load_json(path + "params.json")
 
         datasets = {}
         for data_purpose in params["data_purposes"]:
-
             records = TFRecordsManager.get_record_filenames(path + data_purpose + "/")
-            dataset = tf.data.TFRecordDataset(records, compression_type='GZIP') \
-                             .map(lambda record: self.parse_TFRecord(record, params['data_keys']))
+            dataset = tf.data.TFRecordDataset(records, compression_type='GZIP').map(lambda record: self.parse_TFRecord(record, params['data_keys']))
 
             dataset = dataset.shuffle(100)
             dataset = dataset.batch(batch_size) if "train" in data_purpose else dataset.batch(1)
