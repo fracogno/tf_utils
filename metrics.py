@@ -8,7 +8,14 @@ class MetricsManager:
             "GDICEL": self.generalize_dice_loss,
             "DICEL": self.dice_loss,
             "CE": self.cross_entropy,
-            "WCE": self.weighted_cross_entropy
+            "WCE": self.weighted_cross_entropy,
+            "L1": self.L1_loss,
+            "L2": self.L2_loss
+        }
+
+        self.losses = {
+            "L1": tf.keras.losses.MeanAbsoluteError(),
+            "L2": tf.keras.losses.MeanSquaredError()
         }
 
     def generalize_dice_loss(self, one_hot, logits):
@@ -61,3 +68,9 @@ class MetricsManager:
         weights = tf.reduce_sum(w * one_hot, axis=-1)
 
         return tf.reduce_mean(weights * ce)
+
+    def L1_loss(self, labels, logits):
+        return self.losses["L1"](labels, logits)
+
+    def L2_loss(self, labels, logits):
+        return self.losses["L2"](labels, logits)
