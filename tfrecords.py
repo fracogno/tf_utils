@@ -6,6 +6,11 @@ from . import misc
 
 class TFRecordsManager:
 
+    def __init__(self):
+        self.types = {
+            "float32": tf.float32
+        }
+
     @staticmethod
     def _bytes_feature(value):
         """ Returns a bytes_list from a string / byte. """
@@ -33,9 +38,9 @@ class TFRecordsManager:
         writer = tf.io.TFRecordWriter(path + ".tfrecord", options=tf.io.TFRecordOptions(compression_type="GZIP"))
 
         # Iterate over each sample
-        for sample in data:
-            # Iterate over keys of data (X, Y, etc.) and serialize
-            features = {key: self._serialize_tensor(data[sample][key]) for key in data[sample]}
+        for i in range(len(data)):
+            # Iterate over keys of data_i (X, Y, etc.) and serialize
+            features = {key: self._serialize_tensor(data[i][key]) for key in data[i]}
 
             # Write example
             example = tf.train.Example(features=tf.train.Features(feature=features))
@@ -48,10 +53,9 @@ class TFRecordsManager:
         return sorted(path + filename for filename in os.listdir(path))
 
     def parse_TFRecord(self, record, keys):
-        """ Parse a TFRecord """
         features = {key: tf.io.FixedLenFeature([], tf.string) for key in keys}
         parsed_record = tf.io.parse_single_example(record, features)
-        return {key: tf.io.parse_tensor(parsed_record[key], keys[key]) for key in keys}
+        return {key: tf.io.parse_tensor(parsed_record[key], self.types[keys[key]]) for key in keys}
 
     def load_datasets(self, path, batch_size):
         params = misc.load_json(path + "params.json")

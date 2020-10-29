@@ -21,14 +21,8 @@ def get_base_path(training):
         return base_path
 
 
-def create_TF_records_folder(data_path, data_purposes, params):
-    TF_records_path = data_path + "TF_records_" + datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-
-    if params is not None:
-        true_params = [key for key in params if params[key] is True]
-        if len(true_params) > 0:
-            TF_records_path += "-" + "-".join(true_params)
-    TF_records_path += "/"
+def create_TF_records_folder(data_path, data_purposes):
+    TF_records_path = data_path + "TF_records_" + datetime.datetime.now().strftime("%Y%m%d_%H%M%S") + "/"
 
     os.mkdir(TF_records_path)
     for purpose in data_purposes:
@@ -122,5 +116,5 @@ def get_cut_indices(volume, desired_shape):
 
 def get_cut_volume(volume, x_cut, y_cut, z_cut):
     cut_volume = volume[x_cut[0]:-x_cut[1], y_cut[0]:-y_cut[1], z_cut[0]:-z_cut[1]]
-    assert(np.count_nonzero(volume) == np.count_nonzero(cut_volume))
+    assert (np.count_nonzero(volume) == np.count_nonzero(cut_volume))
     return cut_volume
