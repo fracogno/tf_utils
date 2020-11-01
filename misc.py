@@ -110,8 +110,7 @@ def get_cut_indices(volume, desired_shape):
                 if np.count_nonzero(volume[i:-(result[0] - i), j:-(result[1] - j), k:-(result[2] - k)]) == volume_non_zeros:
                     return (i, result[0] - i), (j, result[1] - j), (k, result[2] - k)
 
-    # It has to find a combination of indices
-    assert (False)
+    return (result[0] // 2, - result[0] // 2), (result[1] // 2, - result[1] // 2), (result[2] // 2, - result[2] // 2)
 
 
 def get_cut_volume(volume, x_cut, y_cut, z_cut):
