@@ -10,7 +10,8 @@ class MetricsManager:
             "CE": self.cross_entropy,
             "WCE": self.weighted_cross_entropy,
             "L1": self.L1_loss,
-            "L2": self.L2_loss
+            "L2": self.L2_loss,
+            "RMSE": self.RMSE
         }
 
         self.losses = {
@@ -74,3 +75,21 @@ class MetricsManager:
 
     def L2_loss(self, labels, logits):
         return self.losses["L2"](labels, logits)
+
+    def RMSE(self, labels, logits, mask):
+        if mask is None:
+            mask = tf.ones_like(labels)
+
+        true_flat = tf.keras.layers.Flatten()(labels)
+        fake_flat = tf.keras.layers.Flatten()(logits)
+        mask_flat = tf.keras.layers.Flatten()(mask)
+
+        # Get only elements in mask
+        true_new = tf.boolean_mask(true_flat, mask_flat)
+        fake_new = tf.boolean_mask(fake_flat, mask_flat)
+
+        # Demean
+        true_demean = true_new - tf.math.reduce_mean(true_new)
+        fake_demean = fake_new - tf.math.reduce_mean(fake_new)
+
+        return 100 * tf.norm(true_demean - fake_demean) / tf.norm(true_demean)
