@@ -8,7 +8,8 @@ class TFRecordsManager:
 
     def __init__(self):
         self.types = {
-            "float32": tf.float32
+            "float32": tf.float32,
+            "int32": tf.int32
         }
 
     @staticmethod
