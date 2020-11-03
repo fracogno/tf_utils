@@ -100,25 +100,23 @@ def get_cut_indices(volume, desired_shape):
 
     volume_non_zeros = np.count_nonzero(volume)
     range_x, range_y, range_z = list(range(result[0])), list(range(result[1])), list(range(result[2]))
-    random.shuffle(range_x)
-    random.shuffle(range_y)
-    random.shuffle(range_z)
-    
-    checked = 0
-    for i in range_x:
-        for j in range_y:
-            for k in range_z:
-                if np.count_nonzero(volume[i:-(result[0] - i), j:-(result[1] - j), k:-(result[2] - k)]) == volume_non_zeros:
-                    return (i, result[0] - i), (j, result[1] - j), (k, result[2] - k)
 
-                checked += 1
-                if checked > 1000:
-                    break
+    combinations = list(itertools.product(range_x, range_y, range_z))
+    random.shuffle(combinations)
+
+    checked = 0
+    for triplet in combinations:
+        i, j, k = triplet[0], triplet[1], triplet[2]
+        if np.count_nonzero(volume[i:-(result[0] - i), j:-(result[1] - j), k:-(result[2] - k)]) == volume_non_zeros:
+            return (i, result[0] - i), (j, result[1] - j), (k, result[2] - k)
+
+        checked += 1
+        if checked > 1000:
+            break
 
     return (result[0] // 2, result[0] // 2), (result[1] // 2, result[1] // 2), (result[2] // 2, result[2] // 2)
 
 
 def get_cut_volume(volume, x_cut, y_cut, z_cut):
     cut_volume = volume[x_cut[0]:-x_cut[1], y_cut[0]:-y_cut[1], z_cut[0]:-z_cut[1]]
-    #assert (np.count_nonzero(volume) == np.count_nonzero(cut_volume))
     return cut_volume
