@@ -120,3 +120,42 @@ def get_cut_indices(volume, desired_shape):
 def get_cut_volume(volume, x_cut, y_cut, z_cut):
     cut_volume = volume[x_cut[0]:-x_cut[1], y_cut[0]:-y_cut[1], z_cut[0]:-z_cut[1]]
     return cut_volume
+
+
+def add_padding(volumes, pad_size):
+    assert (len(volumes.shape) == 5 and len(pad_size) == 3)
+    padded_volumes = []
+    shape = volumes.shape[1:]
+    for volume in volumes:
+        # Add one if shape is not EVEN
+        padded = np.pad(volume[:, :, :, 0], [(int(shape[0] % 2 != 0), 0), (int(shape[1] % 2 != 0), 0), (int(shape[2] % 2 != 0), 0)], 'constant', constant_values=0.0)
+
+        # Calculate how much padding to give
+        val_x = (pad_size[0] - padded.shape[0]) // 2
+        val_y = (pad_size[1] - padded.shape[1]) // 2
+        val_z = (pad_size[2] - padded.shape[2]) // 2
+
+        # Append padded volume
+        padded_volumes.append(np.pad(padded, [(val_x,), (val_y,), (val_z,)], 'constant', constant_values=0.0))
+
+    padded_volumes = np.array(padded_volumes)
+    assert (padded_volumes.shape[1] == pad_size[0] and padded_volumes.shape[2] == pad_size[1] and padded_volumes.shape[3] == pad_size[2])
+
+    return np.expand_dims(padded_volumes, -1), np.array(shape[:-1]), np.array([val_x, val_y, val_z])
+
+
+def remove_padding(volumes, orig_shape, values):
+    assert (len(volumes.shape) == 5 and len(orig_shape) == 3 and len(values) == 3)
+    unpadded_volumes = []
+    for volume in volumes:
+        # Remove padding
+        removed = volume[values[0]:-values[0], values[1]:-values[1], values[2]:-values[2]]
+
+        # Append volume
+        unpadded_volumes.append(removed[int(orig_shape[0] % 2 != 0):, int(orig_shape[1] % 2 != 0):, int(orig_shape[2] % 2 != 0):])
+
+    unpadded_volumes = np.array(unpadded_volumes)
+    shape = unpadded_volumes.shape
+    assert (shape[1] == orig_shape[0] and shape[2] == orig_shape[1] and shape[3] == orig_shape[2])
+
+    return unpadded_volumes
