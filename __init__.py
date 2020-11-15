@@ -2,7 +2,7 @@ from .tensorboard import Tensorboard
 from .metrics import MetricsManager
 from .tfrecords import TFRecordsManager
 
-from .nets.competitive_dense_fc_net import CDFNet
+from .nets.cdfnet import CDFNet
 from .nets.unet import UNet
 
 from .blocks.competitive_dense_block import CompDenseBlock
