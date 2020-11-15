@@ -4,46 +4,55 @@ from tf_utils.layers.maxout import Maxout
 
 class CompDenseBlock(tf.keras.layers.Layer):
 
-    def __init__(self, num_filters):
+    def __init__(self, num_filters, is_input_block=False):
         super(CompDenseBlock, self).__init__()
+        self.is_input_block = is_input_block
 
-        self.conv1 = Conv2D(num_filters, kernel_size=5, padding='same')
+        self.batch_norm11 = BatchNormalization()
         self.relu1 = ReLU()
-        self.batch_norm1 = BatchNormalization()
+        self.conv1 = Conv2D(num_filters, kernel_size=5, padding='same')
+        self.batch_norm12 = BatchNormalization()
 
+        self.concat = Concatenate()
         self.max_out1 = Maxout()
 
-        self.conv2 = Conv2D(num_filters, kernel_size=5, padding='same')
+        self.batch_norm21 = BatchNormalization()
         self.relu2 = ReLU()
-        self.batch_norm2 = BatchNormalization()
+        self.conv2 = Conv2D(num_filters, kernel_size=5, padding='same')
+        self.batch_norm22 = BatchNormalization()
 
         self.max_out2 = Maxout()
 
-        self.conv3 = Conv2D(num_filters, kernel_size=1, padding='same')
         self.relu3 = ReLU()
-        self.batch_norm3 = BatchNormalization()
+        self.conv3 = Conv2D(num_filters, kernel_size=1, padding='same')
 
     def call(self, input_tensor, training=None, mask=None):
 
         x = input_tensor
         concat = x
 
-        x = self.conv1(x)
+        x = self.batch_norm11(x)
         x = self.relu1(x)
-        x = self.batch_norm1(x)
+        x = self.conv1(x)
+        x = self.batch_norm12(x)
 
-        x = self.max_out1([x, concat])
-        concat = x
+        if self.is_input_block:
+            concat = x
+            x = self.concat([x, concat])
 
+        else:
+            x = self.max_out1([x, concat])
+            concat = x
+
+        x = self.batch_norm21(x)
         x = self.conv2(x)
         x = self.relu2(x)
-        x = self.batch_norm2(x)
+        x = self.batch_norm22(x)
 
         x = self.max_out2([x, concat])
 
-        x = self.conv3(x)
         x = self.relu3(x)
-        x = self.batch_norm3(x)
+        x = self.conv3(x)
 
         return x
 
