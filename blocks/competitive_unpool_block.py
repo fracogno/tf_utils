@@ -10,7 +10,8 @@ class CompUnpoolBlock(tf.keras.layers.Layer):
         self.concat1 = Concatenate()
         self.conv = Conv2D(num_filters, kernel_size=kernel_size, padding='same')
         self.relu = ReLU()
-        self.batch_norm = BatchNormalization()
+        self.batch_norm1 = BatchNormalization()
+        self.batch_norm2 = BatchNormalization()
         self.concat2 = Concatenate()
         self.max_out = Maxout()
         pass
@@ -24,11 +25,13 @@ class CompUnpoolBlock(tf.keras.layers.Layer):
         skip_input = inputs[1]
 
         x = self.concat1([main_input, skip_input])
-        x = self.conv(x)
         x = self.relu(x)
-        x = self.batch_norm(x)
+        x = self.conv(x)
+        x = self.batch_norm1(x)
 
-        x = self.max_out([x, main_input])
+        skip_bn = self.batch_norm2(skip_input)
+
+        x = self.max_out([x, skip_bn])
         return x
 
     def get_config(self):
