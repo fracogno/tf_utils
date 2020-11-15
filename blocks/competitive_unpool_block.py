@@ -15,7 +15,7 @@ class CompUnpoolBlock(tf.keras.layers.Layer):
         self.max_out = Maxout()
         pass
 
-    def call(self, inputs, training=None, mask=None):
+    def call(self, inputs):
 
         if not isinstance(inputs, list):
             raise ValueError("CUB layer should be called on a list of inputs.")
@@ -24,9 +24,9 @@ class CompUnpoolBlock(tf.keras.layers.Layer):
         skip_input = inputs[1]
 
         x = self.concat1([main_input, skip_input])
-        x = self.conv(x, training=training)
-        x = self.relu(x, training=training)
-        x = self.batch_norm(x, training=training)
+        x = self.conv(x)
+        x = self.relu(x)
+        x = self.batch_norm(x)
 
         x = self.max_out([x, main_input])
         return x
