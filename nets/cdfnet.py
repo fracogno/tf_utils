@@ -9,7 +9,7 @@ class CDFNet(tf.keras.layers.Layer):
     def __init__(self, num_filters=64, num_classes=44):
         super(CDFNet, self).__init__()
 
-        self.cdb_encoder1 = CompDenseBlock(num_filters)
+        self.cdb_encoder1 = CompDenseBlock(num_filters, is_input_block=True)
         self.max_pool1 = MaxPool2D()
 
         self.cdb_encoder2 = CompDenseBlock(num_filters)
