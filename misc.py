@@ -10,11 +10,11 @@ import itertools
 import random
 
 
-def get_base_path(training):
+def get_base_path(training, prefix=""):
     base_path = str(Path(__file__).parent.parent.parent) + "/"
 
     if training:
-        checkpoint_path = base_path + "checkpoints/ckp_" + datetime.datetime.now().strftime("%Y%m%d_%H%M%S") + "/"
+        checkpoint_path = base_path + "checkpoints/"+str(prefix)+"ckp_" + datetime.datetime.now().strftime("%Y%m%d_%H%M%S") + "/"
         os.mkdir(checkpoint_path)
         return base_path, checkpoint_path
     else:
