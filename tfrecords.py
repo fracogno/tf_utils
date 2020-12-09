@@ -72,3 +72,17 @@ class TFRecordsManager:
             del dataset
 
         return datasets
+
+    def load_datasets_without_batching(self, path):
+        params = misc.load_json(path + "params.json")
+
+        datasets = {}
+        for data_purpose in params["data_purposes"]:
+            records = TFRecordsManager.get_record_filenames(path + data_purpose + "/")
+            dataset = tf.data.TFRecordDataset(records, compression_type='GZIP').map(lambda record: self.parse_TFRecord(record, params['data_keys']))
+
+            dataset = dataset.shuffle(100)
+            datasets[data_purpose] = dataset
+            del dataset
+
+        return datasets
