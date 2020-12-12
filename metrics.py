@@ -44,10 +44,14 @@ class MetricsManager:
         :param logits: output of network (num_samples, num_classes)
         :return: Dice score by each class
         """
+
         probs = tf.nn.softmax(logits)
 
-        intersect = tf.reduce_sum(probs * one_hot, axis=[1, 2, 3])
-        denominator = tf.reduce_sum(probs, axis=[1, 2, 3]) + tf.reduce_sum(one_hot, axis=[1, 2, 3])
+        # Axes which don't contain batches or classes (i.e. exclude first and last axes)
+        target_axes = list(range(len(probs.shape)))[1:-1]
+
+        intersect = tf.reduce_sum(probs * one_hot, axis=target_axes)
+        denominator = tf.reduce_sum(probs, axis=target_axes) + tf.reduce_sum(one_hot, axis=target_axes)
 
         dice_score = tf.reduce_mean(2. * intersect / (denominator + 1e-6), axis=0)
 
