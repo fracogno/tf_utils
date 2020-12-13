@@ -60,8 +60,9 @@ class MetricsManager:
     def dice_loss(self, one_hot, logits, probs=False):
         return 1. - tf.reduce_mean(self.dice_score_from_logits(one_hot, logits, probs=probs))
 
-    def cross_entropy(self, onehot, logits):
-        ce = tf.nn.softmax_cross_entropy_with_logits(onehot, logits, axis=-1)
+    def cross_entropy(self, onehot, logits, probs=False):
+        ce = tf.losses.categorical_crossentropy(onehot, logits, from_logits=(not probs))
+        #ce = tf.nn.softmax_cross_entropy_with_logits(onehot, logits, axis=-1)
         return tf.reduce_mean(ce)
 
     def weighted_cross_entropy(self, one_hot, logits):
