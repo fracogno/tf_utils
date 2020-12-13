@@ -37,7 +37,7 @@ class MetricsManager:
 
         return 1. - tf.reduce_mean(dice_score)
 
-    def dice_score_from_logits(self, one_hot, logits):
+    def dice_score_from_logits(self, one_hot, logits, probs=False):
         """
         Dice coefficient (F1 score) is between 0 and 1.
         :param labels: one hot encoding of target (num_samples, num_classes)
@@ -45,7 +45,7 @@ class MetricsManager:
         :return: Dice score by each class
         """
 
-        probs = tf.nn.softmax(logits)
+        probs = tf.nn.softmax(logits) if not probs else logits
 
         # Axes which don't contain batches or classes (i.e. exclude first and last axes)
         target_axes = list(range(len(probs.shape)))[1:-1]
@@ -57,8 +57,8 @@ class MetricsManager:
 
         return dice_score
 
-    def dice_loss(self, one_hot, logits):
-        return 1. - tf.reduce_mean(self.dice_score_from_logits(one_hot, logits))
+    def dice_loss(self, one_hot, logits, probs=False):
+        return 1. - tf.reduce_mean(self.dice_score_from_logits(one_hot, logits, probs=probs))
 
     def cross_entropy(self, onehot, logits):
         ce = tf.nn.softmax_cross_entropy_with_logits(onehot, logits, axis=-1)
