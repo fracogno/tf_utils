@@ -37,27 +37,32 @@ class MetricsManager:
 
         return 1. - tf.reduce_mean(dice_score)
 
-    def dice_score_from_logits(self, one_hot, logits):
+    def dice_score_from_logits(self, one_hot, logits, probs=False):
         """
         Dice coefficient (F1 score) is between 0 and 1.
         :param labels: one hot encoding of target (num_samples, num_classes)
         :param logits: output of network (num_samples, num_classes)
         :return: Dice score by each class
         """
-        probs = tf.nn.softmax(logits)
 
-        intersect = tf.reduce_sum(probs * one_hot, axis=[1, 2, 3])
-        denominator = tf.reduce_sum(probs, axis=[1, 2, 3]) + tf.reduce_sum(one_hot, axis=[1, 2, 3])
+        probs = tf.nn.softmax(logits) if not probs else logits
+
+        # Axes which don't contain batches or classes (i.e. exclude first and last axes)
+        target_axes = list(range(len(probs.shape)))[1:-1]
+
+        intersect = tf.reduce_sum(probs * one_hot, axis=target_axes)
+        denominator = tf.reduce_sum(probs, axis=target_axes) + tf.reduce_sum(one_hot, axis=target_axes)
 
         dice_score = tf.reduce_mean(2. * intersect / (denominator + 1e-6), axis=0)
 
         return dice_score
 
-    def dice_loss(self, one_hot, logits):
-        return 1. - tf.reduce_mean(self.dice_score_from_logits(one_hot, logits))
+    def dice_loss(self, one_hot, logits, probs=False):
+        return 1. - tf.reduce_mean(self.dice_score_from_logits(one_hot, logits, probs=probs))
 
-    def cross_entropy(self, onehot, logits):
-        ce = tf.nn.softmax_cross_entropy_with_logits(onehot, logits, axis=-1)
+    def cross_entropy(self, onehot, logits, probs=False):
+        ce = tf.losses.categorical_crossentropy(onehot, logits, from_logits=(not probs))
+        #ce = tf.nn.softmax_cross_entropy_with_logits(onehot, logits, axis=-1)
         return tf.reduce_mean(ce)
 
     def weighted_cross_entropy(self, one_hot, logits):
