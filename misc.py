@@ -61,8 +61,9 @@ def split_into_chunks(array, size):
 
 
 def make_patches(volume, padding, patch_size):
-    padded = np.pad(volume, padding, 'constant')
-    blocks = skimage.util.shape.view_as_blocks(padded, (patch_size, patch_size, patch_size))
+    if padding is not None:
+        volume = np.pad(volume, padding, 'constant')
+    blocks = skimage.util.shape.view_as_blocks(volume, (patch_size, patch_size, patch_size))
 
     patches = []
     for i in range(blocks.shape[0]):
