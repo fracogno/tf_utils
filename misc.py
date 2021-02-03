@@ -8,13 +8,14 @@ import numpy as np
 import tensorflow as tf
 import itertools
 import random
+import matplotlib.pyplot as plt
 
 
 def get_base_path(training, prefix=""):
     base_path = str(Path(__file__).parent.parent.parent) + "/"
 
     if training:
-        checkpoint_path = base_path + "checkpoints/"+str(prefix)+"ckp_" + datetime.datetime.now().strftime("%Y%m%d_%H%M%S") + "/"
+        checkpoint_path = base_path + "checkpoints/" + str(prefix) + "ckp_" + datetime.datetime.now().strftime("%Y%m%d_%H%M%S") + "/"
         os.mkdir(checkpoint_path)
         return base_path, checkpoint_path
     else:
@@ -171,3 +172,18 @@ def gauss_3D(size=11, sigma=1.5):
     z = tf.constant(tf.cast(tf.expand_dims(tf.expand_dims(z_data, axis=-1), axis=-1), tf.float32), dtype=tf.float32)
     g = tf.exp(-((x ** 2 + y ** 2 + z ** 2) / (2.0 * sigma ** 2)))
     return g / tf.reduce_sum(g)
+
+
+def plot_figures(ante, **kwargs):
+    """ misc.plot_figures('Prepend text', x=f_batch, y=y_batch) """
+
+    for key, value in kwargs.items():
+        for i in range(len(value)):
+            if len(value.shape) == 4:
+                value = np.expand_dims(np.array(value), -1)
+
+            plt.figure()
+            plt.imshow(value[i][:, :, value[i].shape[-2] // 2, 0], cmap="gray")
+            plt.colorbar()
+            plt.title(str(ante) + " : " + key + "_" + str(i))
+    plt.show()
