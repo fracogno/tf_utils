@@ -163,18 +163,6 @@ def remove_padding(volumes, orig_shape, values):
     return unpadded_volumes
 
 
-def gauss_3D(size=11, sigma=1.5):
-    # Gaussian Filter
-    i = tf.range(-size // 2 + 1, size // 2 + 1, dtype=tf.int32)
-    x_data, y_data, z_data = tf.meshgrid(i, i, i, indexing='ij')
-
-    x = tf.constant(tf.cast(tf.expand_dims(tf.expand_dims(x_data, axis=-1), axis=-1), tf.float32), dtype=tf.float32)
-    y = tf.constant(tf.cast(tf.expand_dims(tf.expand_dims(y_data, axis=-1), axis=-1), tf.float32), dtype=tf.float32)
-    z = tf.constant(tf.cast(tf.expand_dims(tf.expand_dims(z_data, axis=-1), axis=-1), tf.float32), dtype=tf.float32)
-    g = tf.exp(-((x ** 2 + y ** 2 + z ** 2) / (2.0 * sigma ** 2)))
-    return g / tf.reduce_sum(g)
-
-
 def plot_figures(ante, **kwargs):
     """ misc.plot_figures('Prepend text', x=f_batch, y=y_batch) """
 

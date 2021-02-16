@@ -11,8 +11,7 @@ class MetricsManager:
             "WCE": self.weighted_cross_entropy,
             "L1": self.L1_loss,
             "L2": self.L2_loss,
-            "RMSE": self.RMSE,
-            "SSIM": self.SSIM
+            "RMSE": self.RMSE
         }
 
         self.losses = {
@@ -82,7 +81,7 @@ class MetricsManager:
     def L2_loss(self, labels, logits):
         return self.losses["L2"](labels, logits)
 
-    def RMSE(self, labels, logits, mask):
+    def RMSE(self, labels, logits, mask=None):
         if mask is None:
             mask = tf.ones_like(labels)
 
@@ -99,21 +98,3 @@ class MetricsManager:
         fake_demean = fake_new - tf.math.reduce_mean(fake_new)
 
         return 100 * tf.norm(true_demean - fake_demean) / tf.norm(true_demean)
-
-    def SSIM(self, img1, img2, window, K1=0.01, K2=0.03, padding="VALID"):
-
-        mu1 = tf.nn.conv3d(img1, window, strides=[1, 1, 1, 1, 1], padding=padding)
-        mu2 = tf.nn.conv3d(img2, window, strides=[1, 1, 1, 1, 1], padding=padding)
-
-        mu1_sq = mu1 * mu1
-        mu2_sq = mu2 * mu2
-        mu1_mu2 = mu1 * mu2
-
-        sigma1_sq = tf.nn.conv3d(img1 * img1, window, strides=[1, 1, 1, 1, 1], padding=padding) - mu1_sq
-        sigma2_sq = tf.nn.conv3d(img2 * img2, window, strides=[1, 1, 1, 1, 1], padding=padding) - mu2_sq
-        sigma12 = tf.nn.conv3d(img1 * img2, window, strides=[1, 1, 1, 1, 1], padding=padding) - mu1_mu2
-
-        C1 = K1 ** 2
-        C2 = K2 ** 2
-
-        return tf.reduce_mean(((2 * mu1_mu2 + C1) * (2 * sigma12 + C2)) / ((mu1_sq + mu2_sq + C1) * (sigma1_sq + sigma2_sq + C2)))
