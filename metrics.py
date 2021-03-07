@@ -78,7 +78,7 @@ class MetricsManager:
         labels = labels * mask if mask is not None else labels
         logits = logits * mask if mask is not None else logits
 
-        mask = tf.ones_like(labels) if mask is None else None
+        mask = tf.ones_like(labels) if mask is None else mask
 
         true_flat = tf.keras.layers.Flatten()(labels)
         fake_flat = tf.keras.layers.Flatten()(logits)
