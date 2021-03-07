@@ -7,16 +7,11 @@ class MetricsManager:
         self.metrics = {
             "GDICEL": self.generalize_dice_loss,
             "DICEL": self.dice_loss,
-            "CE": self.cross_entropy,
-            "WCE": self.weighted_cross_entropy,
             "L1": self.L1_loss,
             "L2": self.L2_loss,
+            "L1_summed": self.L1_loss_summed,
+            "L2_summed": self.L2_loss_summed,
             "RMSE": self.RMSE
-        }
-
-        self.losses = {
-            "L1": tf.keras.losses.MeanAbsoluteError(),
-            "L2": tf.keras.losses.MeanSquaredError()
         }
 
     def generalize_dice_loss(self, one_hot, logits):
@@ -59,31 +54,31 @@ class MetricsManager:
     def dice_loss(self, one_hot, logits, probs=False):
         return 1. - tf.reduce_mean(self.dice_score_from_logits(one_hot, logits, probs=probs))
 
-    def cross_entropy(self, onehot, logits, probs=False):
-        ce = tf.losses.categorical_crossentropy(onehot, logits, from_logits=(not probs))
-        #ce = tf.nn.softmax_cross_entropy_with_logits(onehot, logits, axis=-1)
-        return tf.reduce_mean(ce)
+    def L1_loss(self, labels, logits, mask):
+        labels = labels * mask if mask is not None else labels
+        logits = logits * mask if mask is not None else logits
+        return tf.reduce_mean(tf.math.abs(labels - logits))
 
-    def weighted_cross_entropy(self, one_hot, logits):
-        w = tf.reduce_sum(one_hot, axis=[0, 1, 2, 3])
-        w = 1 / (w + 1e-6)
-        w = w / tf.reduce_sum(w)  # Normalize weights
-        # w = tf.constant([0.01, 3., 2., 2., 20., 3., 20., 20., 4., 5.])
+    def L1_loss_summed(self, labels, logits, mask, axis=(1, 2, 3)):
+        labels = labels * mask if mask is not None else labels
+        logits = logits * mask if mask is not None else logits
+        return tf.reduce_mean(tf.reduce_sum(tf.math.abs(labels - logits), axis=axis))
 
-        ce = tf.nn.softmax_cross_entropy_with_logits(one_hot, logits, axis=-1)
-        weights = tf.reduce_sum(w * one_hot, axis=-1)
+    def L2_loss(self, labels, logits, mask):
+        labels = labels * mask if mask is not None else labels
+        logits = logits * mask if mask is not None else logits
+        return tf.reduce_mean(tf.math.square(labels - logits))
 
-        return tf.reduce_mean(weights * ce)
+    def L2_loss_summed(self, labels, logits, mask, axis=(1, 2, 3)):
+        labels = labels * mask if mask is not None else labels
+        logits = logits * mask if mask is not None else logits
+        return tf.reduce_mean(tf.reduce_sum(tf.math.square(labels - logits), axis=axis))
 
-    def L1_loss(self, labels, logits):
-        return self.losses["L1"](labels, logits)
+    def RMSE(self, labels, logits, mask):
+        labels = labels * mask if mask is not None else labels
+        logits = logits * mask if mask is not None else logits
 
-    def L2_loss(self, labels, logits):
-        return self.losses["L2"](labels, logits)
-
-    def RMSE(self, labels, logits, mask=None):
-        if mask is None:
-            mask = tf.ones_like(labels)
+        mask = tf.ones_like(labels) if mask is None else None
 
         true_flat = tf.keras.layers.Flatten()(labels)
         fake_flat = tf.keras.layers.Flatten()(logits)
