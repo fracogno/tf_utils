@@ -9,6 +9,7 @@ import tensorflow as tf
 import itertools
 import random
 import matplotlib.pyplot as plt
+import math
 
 
 def get_base_path(training, prefix=""):
@@ -176,3 +177,14 @@ def plot_figures(ante, **kwargs):
             plt.colorbar()
             plt.title(str(ante) + " : " + key + "_" + str(i))
     plt.show()
+
+
+def get_how_much_to_pad(shape, multiple):
+    pad = []
+    is_same_shape = True
+    for val in shape:
+        pad.append(math.ceil(val/multiple) * multiple)
+        if pad[-1] != val:
+            is_same_shape = False
+
+    return pad, is_same_shape
