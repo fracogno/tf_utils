@@ -11,6 +11,7 @@ class MetricsManager:
             "L2": self.L2_loss,
             "L1_summed": self.L1_loss_summed,
             "L2_summed": self.L2_loss_summed,
+            "NRMSE": self.NRMSE,
             "RMSE": self.RMSE
         }
 
@@ -74,7 +75,7 @@ class MetricsManager:
         logits = logits * mask if mask is not None else logits
         return tf.reduce_mean(tf.reduce_sum(tf.math.square(labels - logits), axis=axis))
 
-    def RMSE(self, labels, logits, mask):
+    def NRMSE(self, labels, logits, mask):
         labels = labels * mask if mask is not None else labels
         logits = logits * mask if mask is not None else logits
 
@@ -93,3 +94,6 @@ class MetricsManager:
         fake_demean = fake_new - tf.math.reduce_mean(fake_new)
 
         return 100 * tf.norm(true_demean - fake_demean) / tf.norm(true_demean)
+
+    def RMSE(self, labels, logits, mask):
+        return 100 * tf.norm(labels - logits) / tf.norm(labels)
