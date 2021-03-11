@@ -55,24 +55,16 @@ class MetricsManager:
     def dice_loss(self, one_hot, logits, probs=False):
         return 1. - tf.reduce_mean(self.dice_score_from_logits(one_hot, logits, probs=probs))
 
-    def L1_loss(self, labels, logits, mask):
-        labels = labels * mask if mask is not None else labels
-        logits = logits * mask if mask is not None else logits
+    def L1_loss(self, labels, logits):
         return tf.reduce_mean(tf.math.abs(labels - logits))
 
-    def L1_loss_summed(self, labels, logits, mask, axis=(1, 2, 3)):
-        labels = labels * mask if mask is not None else labels
-        logits = logits * mask if mask is not None else logits
+    def L1_loss_summed(self, labels, logits, axis=(1, 2, 3)):
         return tf.reduce_mean(tf.reduce_sum(tf.math.abs(labels - logits), axis=axis))
 
-    def L2_loss(self, labels, logits, mask):
-        labels = labels * mask if mask is not None else labels
-        logits = logits * mask if mask is not None else logits
+    def L2_loss(self, labels, logits):
         return tf.reduce_mean(tf.math.square(labels - logits))
 
-    def L2_loss_summed(self, labels, logits, mask, axis=(1, 2, 3)):
-        labels = labels * mask if mask is not None else labels
-        logits = logits * mask if mask is not None else logits
+    def L2_loss_summed(self, labels, logits, axis=(1, 2, 3)):
         return tf.reduce_mean(tf.reduce_sum(tf.math.square(labels - logits), axis=axis))
 
     def NRMSE(self, labels, logits, mask):
@@ -95,5 +87,5 @@ class MetricsManager:
 
         return 100 * tf.norm(true_demean - fake_demean) / tf.norm(true_demean)
 
-    def RMSE(self, labels, logits, mask):
+    def RMSE(self, labels, logits):
         return 100 * tf.norm(labels - logits) / tf.norm(labels)
