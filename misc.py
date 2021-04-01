@@ -151,8 +151,14 @@ def remove_padding(volumes, orig_shape, values):
     assert (len(volumes.shape) == 5 and len(orig_shape) == 3 and len(values) == 3)
     unpadded_volumes = []
     for volume in volumes:
+        removed = volume
         # Remove padding
-        removed = volume[values[0]:-values[0], values[1]:-values[1], values[2]:-values[2]]
+        if values[0] != 0:
+            removed = removed[values[0]:-values[0], :, :]
+        if values[1] != 0:
+            removed = removed[:, values[1]:-values[1], :]
+        if values[2] != 0:
+            removed = removed[:, :, values[2]:-values[2]]
 
         # Append volume
         unpadded_volumes.append(removed[int(orig_shape[0] % 2 != 0):, int(orig_shape[1] % 2 != 0):, int(orig_shape[2] % 2 != 0):])
