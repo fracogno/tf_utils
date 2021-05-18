@@ -5,22 +5,13 @@ from tf_utils.blocks.cnn_block import CNN
 
 class UNet(tf.keras.Model):
     def __init__(self, n_classes, n_layers, starting_filters, k_size, init, batch_norm, dropout, activation, conv_per_layer, max_pool,
-                 upsampling, kernel_regularizer, dataset, max_n_filters=512, is_predicting=False):
+                 upsampling, kernel_regularizer, max_n_filters=512):
         super(UNet, self).__init__()
 
         self.n_layers = n_layers
         self.conv_per_layer = conv_per_layer
         self.max_pool = max_pool
         self.upsampling = upsampling
-        self.normalization = dataset is not None
-
-        # Normalization layer
-        if self.normalization:
-            self.normalizer = tf.keras.layers.experimental.preprocessing.Normalization()
-
-            # Adapt only during training, otherwise load weights
-            if not is_predicting:
-                self.normalizer.adapt(dataset)
 
         if kernel_regularizer is not None:
             if kernel_regularizer[0] == "L1":
@@ -62,9 +53,6 @@ class UNet(tf.keras.Model):
         self.last_conv = CNN(n_classes, 3, kernel_initializer=init, batch_norm=None, dropout=0., activation=None)
 
     def call(self, x, training):
-
-        if self.normalization:
-            x = self.normalizer(x)
 
         """
             Encoder
