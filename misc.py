@@ -149,25 +149,18 @@ def add_padding(volumes, pad_size):
 
 def remove_padding(volumes, orig_shape, values):
     assert (len(volumes.shape) == 5 and len(orig_shape) == 3 and len(values) == 3)
-    unpadded_volumes = []
-    for volume in volumes:
-        removed = volume
-        # Remove padding
-        if values[0] != 0:
-            removed = removed[values[0]:-values[0], :, :]
-        if values[1] != 0:
-            removed = removed[:, values[1]:-values[1], :]
-        if values[2] != 0:
-            removed = removed[:, :, values[2]:-values[2]]
+    # Remove padding
+    if values[0] != 0:
+        volumes = volumes[:, values[0]:-values[0], :, :]
+    if values[1] != 0:
+        volumes = volumes[:, :, values[1]:-values[1], :]
+    if values[2] != 0:
+        volumes = volumes[:, :, :, values[2]:-values[2]]
 
-        # Append volume
-        unpadded_volumes.append(removed[int(orig_shape[0] % 2 != 0):, int(orig_shape[1] % 2 != 0):, int(orig_shape[2] % 2 != 0):])
+    volumes = volumes[:, int(orig_shape[0] % 2 != 0):, int(orig_shape[1] % 2 != 0):, int(orig_shape[2] % 2 != 0):]
+    assert (volumes.shape[1] == orig_shape[0] and volumes.shape[2] == orig_shape[1] and volumes.shape[3] == orig_shape[2])
 
-    unpadded_volumes = np.array(unpadded_volumes)
-    shape = unpadded_volumes.shape
-    assert (shape[1] == orig_shape[0] and shape[2] == orig_shape[1] and shape[3] == orig_shape[2])
-
-    return unpadded_volumes
+    return volumes
 
 
 def plot_figures(ante, **kwargs):
