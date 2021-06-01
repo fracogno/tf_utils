@@ -12,7 +12,9 @@ class MetricsManager:
             "L1_summed": self.L1_loss_summed,
             "L2_summed": self.L2_loss_summed,
             "NRMSE": self.NRMSE,
-            "RMSE": self.RMSE
+            "RMSE": self.RMSE,
+            "L1_masked": self.L1_masked,
+            "L2_masked": self.L2_masked
         }
 
     def generalize_dice_loss(self, one_hot, logits):
@@ -66,6 +68,12 @@ class MetricsManager:
 
     def L2_loss_summed(self, labels, logits, axis=(1, 2, 3)):
         return tf.reduce_mean(tf.reduce_sum(tf.math.square(labels - logits), axis=axis))
+
+    def L1_masked(self, labels, logits, mask):
+        return tf.cast(tf.math.reduce_sum(tf.math.abs(labels*mask - logits*mask)) / tf.cast(tf.math.count_nonzero(mask), tf.float64), tf.float32)
+
+    def L2_masked(self, labels, logits, mask):
+        return tf.cast(tf.math.reduce_sum(tf.math.square(labels*mask - logits*mask)) / tf.cast(tf.math.count_nonzero(mask), tf.float64), tf.float32)
 
     def NRMSE(self, labels, logits, mask):
         labels = labels * mask if mask is not None else labels
