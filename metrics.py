@@ -70,10 +70,10 @@ class MetricsManager:
         return tf.reduce_mean(tf.reduce_sum(tf.math.square(labels - logits), axis=axis))
 
     def L1_masked(self, labels, logits, mask):
-        return tf.cast(tf.math.reduce_sum(tf.math.abs(labels*mask - logits*mask)) / tf.cast(tf.math.count_nonzero(mask), tf.float64), tf.float32)
+        return tf.math.reduce_sum(tf.math.abs(labels*mask - logits*mask)) / tf.cast(tf.math.count_nonzero(mask), tf.float32)
 
     def L2_masked(self, labels, logits, mask):
-        return tf.cast(tf.math.reduce_sum(tf.math.square(labels*mask - logits*mask)) / tf.cast(tf.math.count_nonzero(mask), tf.float64), tf.float32)
+        return tf.math.reduce_sum(tf.math.square(labels*mask - logits*mask)) / tf.cast(tf.math.count_nonzero(mask), tf.float32)
 
     def NRMSE(self, labels, logits, mask):
         labels = labels * mask if mask is not None else labels
