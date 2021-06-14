@@ -95,5 +95,5 @@ class MetricsManager:
 
         return 100 * tf.norm(true_demean - fake_demean) / tf.norm(true_demean)
 
-    def RMSE(self, labels, logits):
+    def RMSE(self, labels, logits, mask):
         return 100 * tf.norm(labels - logits) / tf.norm(labels)
