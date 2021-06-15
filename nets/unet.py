@@ -15,9 +15,9 @@ class UNet(tf.keras.Model):
 
         if kernel_regularizer is not None:
             if kernel_regularizer[0] == "L1":
-                kernel_regularizer = tf.keras.regularizers.L1(kernel_regularizer[1])
+                kernel_regularizer = tf.keras.regularizers.l1(kernel_regularizer[1])
             elif kernel_regularizer[0] == "L2":
-                kernel_regularizer = tf.keras.regularizers.L2(kernel_regularizer[1])
+                kernel_regularizer = tf.keras.regularizers.l2(kernel_regularizer[1])
             else:
                 raise NotImplementedError(kernel_regularizer)
 
